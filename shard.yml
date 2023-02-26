@@ -1,0 +1,7 @@
+name: dict-protocol
+version: 0.1.0
+
+authors:
+  - Jan Singon Slany <singond@seznam.cz>
+
+crystal: 1.7.1
