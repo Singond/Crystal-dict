@@ -25,7 +25,7 @@ describe DICT::Client do
       server = TestServer.new
       client = DICT::Client.new(server.io)
       resp = client.define("lattice", "!")
-      puts resp
+      resp.@body.should match /The arrangement of atoms or molecules/
     end
 
     pending "matches correct response to each request" do
