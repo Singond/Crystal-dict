@@ -1,6 +1,3 @@
-require "spec"
-require "http"
-
 require "./spec_helper"
 require "./test_server"
 
