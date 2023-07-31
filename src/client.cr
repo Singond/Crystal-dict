@@ -1,13 +1,16 @@
 require "socket"
 
 module DICT
+
+  alias RequestResponse = {request: Request, channel: Channel(Response)}
+
   class Client
     # Connection to server
     @io : IO
-    # Requests created by calling client methods
-    @input = Channel(Request).new
-    # Responses read from server
-    @output = Channel(Response).new
+    # Requests created by calls to public client methods
+    @requests = Channel(RequestResponse).new
+    # A queue of channels to write responses into
+    @responses = Channel(Channel(Response)).new
 
     def initialize(host : String, port = 2628)
       initialize(TCPSocket.new(host, port))
@@ -15,8 +18,9 @@ module DICT
 
     def initialize(@io : IO)
       spawn do
-        while req = @input.receive
-          @io << req
+        while req = @requests.receive
+          @io << req[:request]
+          @responses.send req[:channel]
         end
       end
 
@@ -28,15 +32,21 @@ module DICT
             end
           end
           unless body.empty?
-            @output.send(Response.new(body))
+            resp = Response.new(body)
+            respch = @responses.receive
+            respch.send resp
           end
         end
       end
     end
 
     def define(word : String, database : String)
-      @input.send(Request.new(word, database))
-      @output.receive
+      request = Request.new(word, database)
+      response_channel = Channel(Response).new(capacity: 1)
+      @requests.send({request: request, channel: response_channel})
+      response = response_channel.receive
+      response_channel.close
+      response
     end
   end
 

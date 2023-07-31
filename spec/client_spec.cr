@@ -10,9 +10,12 @@ module DICT
   class SlowClient < Client
     def define(word : String, database : String)
       puts "Sending request '#{word}'"
-      @input.send(Request.new(word, database))
+      request = Request.new(word, database)
+      response_channel = Channel(Response).new
+      @requests.send({request: request, channel: response_channel})
       sleep 2 if word == "slow"
-      resp = @output.receive
+      resp = response_channel.receive
+      resph = resp.@body.lines()[0]
       puts "Got response #{resp}"
       resp
     end
@@ -28,7 +31,7 @@ describe DICT::Client do
       resp.@body.should match /The arrangement of atoms or molecules/
     end
 
-    pending "matches correct response to each request" do
+    it "matches correct response to each request" do
       server = TestServer.new
       client = DICT::SlowClient.new(server.io)
       c = Channel(Tuple(String, DICT::Response)).new
