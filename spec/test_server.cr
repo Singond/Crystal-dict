@@ -20,7 +20,7 @@ class TestServer
         word = $~[1]
         if @@words.has_key? word
           @out << @@words[word] << "\n.\n"
-          puts "Sent response of #{@@words[word].size} characters"
+          puts "Sent response to '#{word}' (#{@@words[word].size} characters)"
         else
           @out << "552 No match" << "\n.\n"
         end

@@ -9,11 +9,11 @@ module DICT
   # writing a request and reading a response.
   class SlowClient < Client
     def define(word : String, database : String)
-      puts "Sending request"
+      puts "Sending request '#{word}'"
       @input.send(Request.new(word, database))
       sleep 2 if word == "slow"
       resp = @output.receive
-      puts "Got response"
+      puts "Got response #{resp}"
       resp
     end
   end
