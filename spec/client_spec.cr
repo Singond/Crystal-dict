@@ -26,27 +26,27 @@ describe DICT::Client do
       resp = client.define("lattice", "!")
       resp.to_s.should match /The arrangement of atoms or molecules/
     end
+  end
 
-    it "matches correct response to each request" do
-      server = TestServer.new
-      client = DICT::SlowClient.new(server.io)
-      c = Channel(Tuple(String, DICT::Response)).new
-      spawn do
-        response = client.define("slow", "!")
-        c.send({"slow", response})
-      end
-      spawn do
-        response = client.define("lattice", "!")
-        c.send({"lattice", response})
-      end
-      2.times do
-        word, response = c.receive
-        case word
-        when "slow"
-          response.to_s.should match /not fast/
-        when "lattice"
-          response.to_s.should match /arrangement of atoms/
-        end
+  it "matches correct response to each request" do
+    server = TestServer.new
+    client = DICT::SlowClient.new(server.io)
+    c = Channel(Tuple(String, DICT::Response)).new
+    spawn do
+      response = client.define("slow", "!")
+      c.send({"slow", response})
+    end
+    spawn do
+      response = client.define("lattice", "!")
+      c.send({"lattice", response})
+    end
+    2.times do
+      word, response = c.receive
+      case word
+      when "slow"
+        response.to_s.should match /not fast/
+      when "lattice"
+        response.to_s.should match /arrangement of atoms/
       end
     end
   end
