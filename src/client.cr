@@ -1,5 +1,7 @@
 require "socket"
 
+require "./status"
+
 module DICT
 
   alias RequestResponse = {request: Request, channel: Channel(Response)}
@@ -25,17 +27,38 @@ module DICT
       end
 
       spawn do
+        banner = build_response @io
         while true
-          body = String.build do |r|
-            until (line = @io.gets(chomp: false)) == ".\n"
-              r << line
-            end
-          end
-          unless body.empty?
-            resp = Response.new(body)
+          resp = build_response @io
+          if resp
             respch = @responses.receive
             respch.send resp
           end
+        end
+      end
+    end
+
+    # Parses a response from the given _io_.
+    def build_response(io : IO)
+      status_code_str = io.gets(' ') || raise "Response is empty"
+      if status_code = status_code_str.to_i32?
+        status = Status.new(status_code)
+      else
+        raise "Bad response: No status code found in line:\n'#{status_code_str}'"
+      end
+
+      case status
+      when Status::DEFINITIONS_LIST
+        DefinitionsResponse.new(status, io)
+      else
+        Response.new(status, io)
+      end
+    end
+
+    def self.parse_body(io : IO)
+      String.build do |b|
+        until (line = io.gets(chomp: false)) == ".\n"
+          b << line
         end
       end
     end
@@ -63,13 +86,49 @@ module DICT
   end
 
   class Response
-    @body : String
+    @status : Status
+    @status_message : String
 
-    def initialize(@body)
+    def initialize(@status, io)
+      @status_message = io.gets || ""
     end
 
     def to_s(io : IO)
-      io << @body
+      io << @status.code << " " << @status_message
+    end
+  end
+
+  class TextResponse < Response
+    @body : String
+
+    def initialize(@status, io)
+      super(status, io)
+      @body = parse_body(io)
+    end
+
+    def to_s(io : IO)
+      super(io)
+      io << "\n" << @body
+    end
+  end
+
+  class DefinitionsResponse < Response
+    @definitions : Array(String)
+
+    def initialize(@status, io)
+      super(status, io)
+      parts = @status_message.split(2)
+      n = parts[0].to_i32? || raise "Invalid parameter n"
+      @definitions = Array.new(size: n) do
+        Client.parse_body(io)
+      end
+    end
+
+    def to_s(io)
+      super(io)
+      @definitions.each do |definition|
+        io << "\n" << definition
+      end
     end
   end
 end

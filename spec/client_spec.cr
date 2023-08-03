@@ -12,8 +12,7 @@ module DICT
       @requests.send({request: request, channel: response_channel})
       sleep 2 if word == "slow"
       resp = response_channel.receive
-      resph = resp.@body.lines()[0]
-      puts "Got response #{resp}"
+      puts "Got response #{resp.to_s.lines()[1]}"
       resp
     end
   end
@@ -25,7 +24,7 @@ describe DICT::Client do
       server = TestServer.new
       client = DICT::Client.new(server.io)
       resp = client.define("lattice", "!")
-      resp.@body.should match /The arrangement of atoms or molecules/
+      resp.to_s.should match /The arrangement of atoms or molecules/
     end
 
     it "matches correct response to each request" do
