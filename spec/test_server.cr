@@ -19,7 +19,7 @@ class TestServer
       if req =~ /define ! ([a-z]+)/
         word = $~[1]
         if @@words.has_key? word
-          @out << @@words[word] << "\n.\n"
+          @out << @@words[word] << "\n"
           puts "Sent response to '#{word}' (#{@@words[word].size} characters)"
         else
           @out << "552 No match" << "\n.\n"
