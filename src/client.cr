@@ -131,7 +131,13 @@ module DICT
     @status : Status
     @status_message : String
 
-    def initialize(@status, io)
+    def initialize(status : Status | Number, io : IO)
+      case status
+      in Status
+        @status = status
+      in Number
+        @status = Status.new(status)
+      end
       @status_message = io.gets || ""
     end
 
@@ -181,7 +187,8 @@ module DICT
     getter dbdesc : String
 
     def initialize(io)
-      @status = Status.new(io.gets(' ').not_nil!.to_i32)
+      status_str = io.gets(' ')
+      @status = Status.new(status_str.not_nil!.to_i32)
       @word, @dbname, @dbdesc = Client.parse_params(io, 3)
       super(@status, io)
     end
