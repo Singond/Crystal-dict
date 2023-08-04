@@ -128,8 +128,8 @@ module DICT
   end
 
   class Response
-    @status : Status
-    @status_message : String
+    getter status : Status
+    getter status_message : String
 
     def initialize(status : Status | Number, io : IO)
       case status
