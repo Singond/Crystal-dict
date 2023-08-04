@@ -7,7 +7,7 @@ module DICT
   alias RequestResponse = {request: Request, channel: Channel(Response)}
 
   class Client
-    # Connection to server
+    # Connection to server
     @io : IO
     # Requests created by calls to public client methods
     @requests = Channel(RequestResponse).new
