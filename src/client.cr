@@ -63,6 +63,48 @@ module DICT
       end
     end
 
+    def self.parse_params(io : IO, n : Number)
+      Array(String).new(n) do |idx|
+        String.build do |str|
+
+          # Skip whitespace
+          while (c = io.read_char) && c.whitespace?
+            # Line must not end before all parameters have been read.
+            if (c == '\n' || c == '\r') && idx < n - 1
+              raise "Missing #{idx}th parameter"
+            end
+            # Skip the character
+          end
+
+          if !c
+            raise "Input ended before #{idx+1} parameters could be read"
+          end
+
+          # Read word or quoted string
+          if c == '"'
+            # quoted string
+            while (c = io.read_char) && c != '"'
+              if c == '\n' || c == '\r'
+                raise "Line ended before quoted string ended"
+              end
+              str << c
+            end
+          else
+            # word
+            str << c
+            while (c = io.read_char) && !c.whitespace?
+              str << c
+            end
+          end
+
+        end
+      end
+    end
+
+    def self.parse_params(string : String, n : Number)
+      self.parse_params(String.Builder.new(string), n)
+    end
+
     def define(word : String, database : String)
       request = Request.new(word, database)
       response_channel = Channel(Response).new(capacity: 1)
@@ -99,11 +141,11 @@ module DICT
   end
 
   class TextResponse < Response
-    @body : String
+    getter body : String
 
-    def initialize(@status, io)
+    def initialize(status, io)
       super(status, io)
-      @body = parse_body(io)
+      @body = Client.parse_body(io)
     end
 
     def to_s(io : IO)
@@ -113,14 +155,15 @@ module DICT
   end
 
   class DefinitionsResponse < Response
-    @definitions : Array(String)
+    getter definitions : Array(DefinitionResponse)
 
-    def initialize(@status, io)
+    def initialize(status, io)
       super(status, io)
       parts = @status_message.split(2)
-      n = parts[0].to_i32? || raise "Invalid parameter n"
+      nstr = parts[0]
+      n = nstr.to_i32? || raise "Invalid number of definitions: '#{nstr}'"
       @definitions = Array.new(size: n) do
-        Client.parse_body(io)
+        DefinitionResponse.new(io)
       end
     end
 
@@ -129,6 +172,18 @@ module DICT
       @definitions.each do |definition|
         io << "\n" << definition
       end
+    end
+  end
+
+  class DefinitionResponse < TextResponse
+    getter word : String
+    getter dbname : String
+    getter dbdesc : String
+
+    def initialize(io)
+      @status = Status.new(io.gets(' ').not_nil!.to_i32)
+      @word, @dbname, @dbdesc = Client.parse_params(io, 3)
+      super(@status, io)
     end
   end
 end

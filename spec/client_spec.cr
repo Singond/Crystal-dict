@@ -24,7 +24,16 @@ describe DICT::Client do
       server = TestServer.new
       client = DICT::Client.new(server.io)
       resp = client.define("lattice", "!")
-      resp.to_s.should match /The arrangement of atoms or molecules/
+      resp.should be_a DICT::DefinitionsResponse
+      resp = resp.as DICT::DefinitionsResponse
+      resp.definitions.size.should eq 1
+      d = resp.definitions[0]
+      d.word.should eq "Lattice"
+      d.dbname.should eq "gcide"
+      d.dbdesc.should eq \
+          "The Collaborative International Dictionary of English v.0.48"
+      d.body.should start_with "Lattice"
+      d.body.should match /The arrangement of atoms or molecules/
     end
   end
 
