@@ -7,15 +7,13 @@ require "./status"
 
 module DICT
 
-  alias RequestResponse = {request: Request, channel: Channel(Response)}
-
   class Client
     # Connection to server
     @io : IO
     # Requests created by calls to public client methods
     @requests = Channel(RequestResponse).new
     # A queue of channels to write responses into
-    @responses = Channel(Channel(Response)).new
+    @responses = Channel(ResponsePromise).new
     @banner : BannerResponse?
     @banner_channel = Channel(BannerResponse).new(capacity: 1)
 
@@ -38,9 +36,9 @@ module DICT
 
     private def send_requests
       while req = @requests.receive?
-        Log.debug { "Sending request '#{req[:request]}'" }
-        req[:request].to_io @io
-        @responses.send req[:channel]
+        Log.debug { "Sending request '#{req.request}'" }
+        req.request.to_io @io
+        @responses.send req.channel
       end
     end
 
@@ -58,7 +56,7 @@ module DICT
       end
     end
 
-    private def expect_responses(io : IO, targets : Channel(Channel(Response)))
+    private def expect_responses(io : IO, targets : Channel(ResponsePromise))
       while respch = targets.receive?
         resp = Response.from_io_deep io
         if resp
@@ -85,10 +83,10 @@ module DICT
     end
 
     private def send(request : Request)
-      response_channel = Channel(Response).new(capacity: 1)
-      @requests.send({request: request, channel: response_channel})
-      response = response_channel.receive
-      response_channel.close
+      rr = RequestResponse.new(request)
+      @requests.send(rr)
+      response = rr.response
+      rr.close
       response
     end
 
@@ -106,6 +104,29 @@ module DICT
       @io.close
       @requests.close
       @responses.close
+    end
+  end
+
+  alias ResponsePromise = Channel(Response)
+
+  # A wrapper for a request and the associated response.
+  class RequestResponse
+    getter request : Request
+    getter channel : ResponsePromise
+
+    def initialize(@request, @channel)
+    end
+
+    def initialize(@request)
+      initialize(request, ResponsePromise.new(capacity: 1))
+    end
+
+    def response()
+      @channel.receive
+    end
+
+    def close()
+      @channel.close
     end
   end
 end

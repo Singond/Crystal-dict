@@ -8,10 +8,10 @@ module DICT
     def define(word : String, database : String)
       Log.info { "Sending request '#{word}'" }
       request = DefineRequest.new(word, database)
-      response_channel = Channel(Response).new
-      @requests.send({request: request, channel: response_channel})
+      reqresp = RequestResponse.new(request)
+      @requests.send(reqresp)
       sleep 2 if word == "slow"
-      resp = response_channel.receive
+      resp = reqresp.response
       Log.info { "Got response #{resp.to_s.lines()[1]}" }
       resp
     end
