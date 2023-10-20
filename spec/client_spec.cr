@@ -33,6 +33,13 @@ describe DICT::Client do
     end
   end
 
+  it "works with LF line endings" do
+    server = TestServer.new("\n")
+    client = DICT::Client.new(server.io)
+    resp = client.define("lattice", "!")
+    resp.should be_a DICT::DefinitionsResponse
+  end
+
   it "matches correct response to each request" do
     server = TestServer.new
     client = DICT::SlowClient.new(server.io)

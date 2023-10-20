@@ -1,6 +1,6 @@
 class TestServer
   @@words = Hash(String, String).new
-  @eol = "\n"
+  @eol = "\r\n"
 
   def initialize
     @in, @inw = IO.pipe

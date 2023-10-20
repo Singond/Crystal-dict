@@ -41,8 +41,8 @@ module DICT
 
     def self.parse_body(io : IO)
       String.build do |b|
-        until (line = io.gets(chomp: false)) == ".\n"
-          b << line
+        until (line = io.gets) == "."
+          b << line << "\n"
         end
       end
     end
