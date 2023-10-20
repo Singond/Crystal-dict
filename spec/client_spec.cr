@@ -63,3 +63,16 @@ describe DICT::Client do
     end
   end
 end
+
+describe DICT::Client, tags: "online" do
+  it "" do
+    client = DICT::Client.new "www.dict.org"
+    resp = client.define("crystal", "!")
+
+    resp.should be_a DICT::DefinitionsResponse
+    resp = resp.as DICT::DefinitionsResponse
+
+    d = resp.definitions[0]
+    d.body.should match /regular form which a substance tends to/
+  end
+end
