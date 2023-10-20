@@ -1,5 +1,6 @@
 class TestServer
   @@words = Hash(String, String).new
+  @eol = "\n"
 
   def initialize
     @in, @inw = IO.pipe
@@ -9,20 +10,25 @@ class TestServer
     end
   end
 
+  def initialize(@eol : String)
+    initialize
+  end
+
   def io
     IO::Stapled.new(@outr, @inw)
   end
 
   def run
-    @out << "220 localhost testing server <auth.mime> <ok@localhost>\n\n"
+    @out << "220 localhost testing server <auth.mime> <ok@localhost>"
+    @out << @eol << @eol
     while req = @in.gets
       if req =~ /define ! ([a-z]+)/
         word = $~[1]
         if @@words.has_key? word
-          @out << @@words[word] << "\n"
+          @out << @@words[word] << @eol
           puts "Sent response to '#{word}' (#{@@words[word].size} characters)"
         else
-          @out << "552 No match" << "\n.\n"
+          @out << "552 No match" << @eol << "." << @eol
         end
       end
     end
