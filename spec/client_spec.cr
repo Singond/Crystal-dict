@@ -24,6 +24,7 @@ describe DICT::Client do
       server = TestServer.new
       client = DICT::Client.new(server.io)
       resp = client.define("lattice", "!")
+      client.close
 
       resp.should be_a DICT::DefinitionsResponse
       resp = resp.as DICT::DefinitionsResponse
@@ -37,6 +38,7 @@ describe DICT::Client do
     server = TestServer.new("\n")
     client = DICT::Client.new(server.io)
     resp = client.define("lattice", "!")
+    client.close
     resp.should be_a DICT::DefinitionsResponse
   end
 
@@ -61,6 +63,7 @@ describe DICT::Client do
         response.to_s.should match /arrangement of atoms/
       end
     end
+    client.close
   end
 end
 
@@ -68,6 +71,7 @@ describe DICT::Client, tags: "online" do
   it "" do
     client = DICT::Client.new "www.dict.org"
     resp = client.define("crystal", "!")
+    client.close
 
     resp.should be_a DICT::DefinitionsResponse
     resp = resp.as DICT::DefinitionsResponse

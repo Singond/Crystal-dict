@@ -21,7 +21,7 @@ module DICT
 
     def initialize(@io : IO)
       spawn do
-        while req = @requests.receive
+        while req = @requests.receive?
           @io << req[:request]
           @responses.send req[:channel]
         end
@@ -29,10 +29,9 @@ module DICT
 
       spawn do
         banner = Response.build_response @io
-        while true
+        while respch = @responses.receive?
           resp = Response.build_response @io
           if resp
-            respch = @responses.receive
             respch.send resp
           end
         end
@@ -46,6 +45,12 @@ module DICT
       response = response_channel.receive
       response_channel.close
       response
+    end
+
+    def close
+      @io.close
+      @requests.close
+      @responses.close
     end
   end
 
