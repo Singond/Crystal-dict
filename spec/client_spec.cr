@@ -30,6 +30,10 @@ describe DICT::Client do
       resp = resp.as DICT::DefinitionsResponse
 
       d = resp.definitions[0]
+      d.status.should eq DICT::Status::DEFINITION
+      d.word.should eq "Lattice"
+      d.dbname.should eq "gcide"
+      d.dbdesc.should eq "The Collaborative International Dictionary of English v.0.48"
       d.body.should match /The arrangement of atoms or molecules/
     end
   end

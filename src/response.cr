@@ -118,7 +118,7 @@ module DICT
       nstr = parts[0]
       n = nstr.to_i32? || raise "Invalid number of definitions: '#{nstr}'"
       @definitions = Array.new(size: n) do
-        DefinitionResponse.new(io)
+        DefinitionResponse.new(status, io)
       end
     end
 
@@ -135,11 +135,12 @@ module DICT
     getter dbname : String
     getter dbdesc : String
 
-    def initialize(io)
-      status_str = io.gets(' ')
+    def initialize(status, io)
+      super(status, io)
+      msgio = IO::Memory.new(@status_message)
+      status_str = msgio.gets(' ')
       @status = Status.new(status_str.not_nil!.to_i32)
-      @word, @dbname, @dbdesc = Response.parse_params(io, 3)
-      super(@status, io)
+      @word, @dbname, @dbdesc = Response.parse_params(msgio, 3)
     end
   end
 end
