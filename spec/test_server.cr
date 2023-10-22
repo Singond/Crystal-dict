@@ -65,4 +65,12 @@ class TestServer
       adj 1. not fast
   .
   END
+
+  @@words["tabulator"] = <<-END
+  150\t1\tdefinitions retrieved
+  151\t"tabulator"\tmd\t"My Dictionary 0.4"
+  slow
+      noun 1. The ASCII character U+0009
+  .
+  END
 end

@@ -46,6 +46,17 @@ describe DICT::Client do
     resp.should be_a DICT::DefinitionsResponse
   end
 
+  pending "works with tabulators as delimiter in header fields" do
+    server = TestServer.new("\n")
+    client = DICT::Client.new(server.io)
+    resp = client.define("tabulator", "!")
+    client.close
+
+    resp.should be_a DICT::DefinitionsResponse
+    resp = resp.as DICT::DefinitionsResponse
+    resp.definitions.size.should eq 1
+  end
+
   it "matches correct response to each request" do
     server = TestServer.new
     client = DICT::SlowClient.new(server.io)
