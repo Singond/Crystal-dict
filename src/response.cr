@@ -19,12 +19,16 @@ module DICT
       in Number
         @status = Status.new(status)
       end
-      @status_message = io.gets || ""
+      if msg = io.gets
+        @status_message = msg.lstrip
+      else
+        @status_message = ""
+      end
     end
 
     # Parses a response from the given _io_.
     def self.build_response(io : IO)
-      status_code_str = io.gets(' ') || raise "Response is empty"
+      status_code_str = io.gets(3) || raise "Response is empty"
       if status_code = status_code_str.to_i32?
         status = Status.new(status_code)
       else
@@ -138,7 +142,7 @@ module DICT
     def initialize(status, io)
       super(status, io)
       msgio = IO::Memory.new(@status_message)
-      status_str = msgio.gets(' ')
+      status_str = msgio.gets(3)
       @status = Status.new(status_str.not_nil!.to_i32)
       @word, @dbname, @dbdesc = Response.parse_params(msgio, 3)
     end
