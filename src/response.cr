@@ -38,6 +38,8 @@ module DICT
       case status
       when Status::DEFINITIONS_LIST
         DefinitionsResponse.new(status, io)
+      when Status::DEFINITION
+        DefinitionResponse.new(status, io)
       else
         Response.new(status, io)
       end
@@ -121,8 +123,14 @@ module DICT
       parts = @status_message.split(2)
       nstr = parts[0]
       n = nstr.to_i32? || raise "Invalid number of definitions: '#{nstr}'"
-      @definitions = Array.new(size: n) do
-        DefinitionResponse.new(status, io)
+      @definitions = Array(DefinitionResponse).new(initial_capacity: n)
+      n.times do
+        resp = Response.build_response(io)
+        if resp.is_a? DefinitionResponse
+          @definitions << resp
+        else
+          raise "Expecting status 151, but the response is:\n#{resp}"
+        end
       end
     end
 
@@ -142,8 +150,6 @@ module DICT
     def initialize(status, io)
       super(status, io)
       msgio = IO::Memory.new(@status_message)
-      status_str = msgio.gets(3)
-      @status = Status.new(status_str.not_nil!.to_i32)
       @word, @dbname, @dbdesc = Response.parse_params(msgio, 3)
     end
   end
