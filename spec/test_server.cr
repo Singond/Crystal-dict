@@ -73,4 +73,12 @@ class TestServer
       noun 1. The ASCII character U+0009
   .
   END
+
+  @@words["whitespace"] = <<-END
+  150  1       definitions retrieved
+  151\t "whitespace"     md  \t  "My Dictionary 0.4"
+  slow
+      noun 1. A non-printable character
+  .
+  END
 end

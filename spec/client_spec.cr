@@ -57,6 +57,17 @@ describe DICT::Client do
     resp.definitions.size.should eq 1
   end
 
+  it "works with any sequence of whitespace as delimiter in header fields" do
+    server = TestServer.new("\n")
+    client = DICT::Client.new(server.io)
+    resp = client.define("whitespace", "!")
+    client.close
+
+    resp.should be_a DICT::DefinitionsResponse
+    resp = resp.as DICT::DefinitionsResponse
+    resp.definitions.size.should eq 1
+  end
+
   it "matches correct response to each request" do
     server = TestServer.new
     client = DICT::SlowClient.new(server.io)
