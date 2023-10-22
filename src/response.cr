@@ -47,7 +47,14 @@ module DICT
 
     def self.parse_body(io : IO)
       String.build do |b|
+        # Single period on its own indicates the end of body.
         until (line = io.gets) == "."
+          # Initial double period must be collapsed into single.
+          # The server doubles initial period to distinguish the line
+          # from the end-of-body marker.
+          if line && line.starts_with? ".."
+            line = line[1..]
+          end
           b << line << "\n"
         end
       end

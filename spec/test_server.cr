@@ -81,4 +81,13 @@ class TestServer
       noun 1. A non-printable character
   .
   END
+
+  @@words["period"] = <<-END
+  150 1 definition retrieved
+  151 "period" foldoc "The Free On-line Dictionary of Computing"
+  ..period.
+      1. A non-printable character.
+      2. (US) A full stop, like so:
+  .
+  END
 end

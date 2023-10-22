@@ -36,6 +36,19 @@ describe DICT::Client do
       d.dbdesc.should eq "The Collaborative International Dictionary of English v.0.48"
       d.body.should match /The arrangement of atoms or molecules/
     end
+
+    it "Collapses double dots at the start of a body line" do
+      server = TestServer.new
+      client = DICT::Client.new(server.io)
+      resp = client.define("period", "!")
+      client.close
+
+      resp.should be_a DICT::DefinitionsResponse
+      resp = resp.as DICT::DefinitionsResponse
+
+      d = resp.definitions[0]
+      d.body.lines[0].should eq ".period."
+    end
   end
 
   it "works with LF line endings" do
