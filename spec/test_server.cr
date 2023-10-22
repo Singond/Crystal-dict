@@ -20,7 +20,7 @@ class TestServer
 
   def run
     @out << "220 localhost testing server <auth.mime> <ok@localhost>"
-    @out << @eol << @eol
+    @out << @eol
     while req = @in.gets
       if req =~ /define ! ([a-z]+)/
         word = $~[1]
