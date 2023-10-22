@@ -29,6 +29,13 @@ require "dict-protocol"
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create a new Pull Request
 
+### Running tests
+The tests use the `Log` class to log messages.
+To see the messages, set the `LOG_LEVEL` environment variable:
+```
+LOG_LEVEL=info crystal spec
+```
+
 ## Contributors
 
 - [Jan Singon Slany](https://github.com/singond) - creator and maintainer

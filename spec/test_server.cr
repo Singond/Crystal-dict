@@ -1,3 +1,5 @@
+require "./spec_helper"
+
 class TestServer
   @@words = Hash(String, String).new
   @eol = "\r\n"
@@ -26,7 +28,9 @@ class TestServer
         word = $~[1]
         if @@words.has_key? word
           @out << @@words[word] << @eol
-          puts "Sent response to '#{word}' (#{@@words[word].size} characters)"
+          Log.info do
+            "Sent response to '#{word}' (#{@@words[word].size} characters)"
+          end
         else
           @out << "552 No match" << @eol << "." << @eol
         end

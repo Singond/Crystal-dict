@@ -6,13 +6,13 @@ module DICT
   # writing a request and reading a response.
   class SlowClient < Client
     def define(word : String, database : String)
-      puts "Sending request '#{word}'"
+      Log.info { "Sending request '#{word}'" }
       request = Request.new(word, database)
       response_channel = Channel(Response).new
       @requests.send({request: request, channel: response_channel})
       sleep 2 if word == "slow"
       resp = response_channel.receive
-      puts "Got response #{resp.to_s.lines()[1]}"
+      Log.info { "Got response #{resp.to_s.lines()[1]}" }
       resp
     end
   end
