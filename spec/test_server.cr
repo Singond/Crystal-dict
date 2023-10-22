@@ -69,7 +69,7 @@ class TestServer
   @@words["tabulator"] = <<-END
   150\t1\tdefinitions retrieved
   151\t"tabulator"\tmd\t"My Dictionary 0.4"
-  slow
+  tabulator
       noun 1. The ASCII character U+0009
   .
   END
@@ -77,7 +77,7 @@ class TestServer
   @@words["whitespace"] = <<-END
   150  1       definitions retrieved
   151\t "whitespace"     md  \t  "My Dictionary 0.4"
-  slow
+  whitespace
       noun 1. A non-printable character
   .
   END
