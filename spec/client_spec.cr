@@ -37,7 +37,7 @@ describe DICT::Client do
       d.body.should match /The arrangement of atoms or molecules/
     end
 
-    it "Collapses double dots at the start of a body line" do
+    it "collapses double dots at the start of a body line" do
       server = TestServer.new
       client = DICT::Client.new(server.io)
       resp = client.define("period", "!")
