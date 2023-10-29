@@ -31,6 +31,7 @@ class TestServer
           Log.info do
             "Sent response to '#{word}' (#{@@words[word].size} characters)"
           end
+          @out << "250 ok" << @eol
         else
           @out << "552 No match" << @eol << "." << @eol
         end

@@ -168,6 +168,13 @@ module DICT
         end
       end
 
+      # Completion marker
+      final = Response.from_io(io)
+      unless final.status == Status::OK
+        raise "Definition command not completed successfully. \
+          Expected status 250, but the response is:\n#{final}"
+      end
+
       definitions
     end
 

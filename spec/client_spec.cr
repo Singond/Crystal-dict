@@ -50,10 +50,11 @@ describe DICT::Client do
       d.body.lines[0].should eq ".period."
     end
 
-    it "can be called repeatedly", tags: "online" do
-      client = DICT::Client.new "www.dict.org"
-      resp1 = client.define("crystal", "!")
-      resp2 = client.define("ruby", "!")
+    it "can be called repeatedly" do
+      server = TestServer.new
+      client = DICT::Client.new(server.io)
+      resp1 = client.define("lattice", "!")
+      resp2 = client.define("monoclinic", "!")
       client.close
 
       resp1.should be_a DICT::DefinitionsResponse
@@ -122,19 +123,29 @@ describe DICT::Client do
     end
     client.close
   end
-end
 
-describe DICT::Client, tags: "online" do
-  it "" do
-    client = DICT::Client.new "www.dict.org"
-    resp = client.define("crystal", "!")
-    client.close
+  describe "#define", tags: "online" do
+    it "retrieves the definition of word" do
+      client = DICT::Client.new "www.dict.org"
+      resp = client.define("crystal", "!")
+      client.close
 
-    resp.should be_a DICT::DefinitionsResponse
-    resp = resp.as DICT::DefinitionsResponse
+      resp.should be_a DICT::DefinitionsResponse
+      resp = resp.as DICT::DefinitionsResponse
 
-    d = resp.definitions[0]
-    d.body.should match /regular form which a substance tends to/
+      d = resp.definitions[0]
+      d.body.should match /regular form which a substance tends to/
+    end
+
+    it "can be called repeatedly" do
+      client = DICT::Client.new "www.dict.org"
+      resp1 = client.define("crystal", "!")
+      resp2 = client.define("ruby", "!")
+      client.close
+
+      resp1.should be_a DICT::DefinitionsResponse
+      resp2.should be_a DICT::DefinitionsResponse
+    end
   end
 end
 

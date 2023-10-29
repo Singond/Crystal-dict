@@ -15,6 +15,7 @@ describe DICT::Response do
         {space lattice}.
         [PJC]
     .
+    250 ok
 
     END
 
