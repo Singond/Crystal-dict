@@ -28,9 +28,9 @@ module DICT
       end
 
       spawn do
-        banner = Response.build_response @io
+        banner = Response.from_io @io
         while respch = @responses.receive?
-          resp = Response.build_response @io
+          resp = Response.from_io @io
           if resp
             respch.send resp
           end

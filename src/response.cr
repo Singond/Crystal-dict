@@ -27,7 +27,7 @@ module DICT
     end
 
     # Parses a response from the given _io_.
-    def self.build_response(io : IO)
+    def self.from_io(io : IO)
       status_code_str = io.gets(3) || raise "Response is empty"
       if status_code = status_code_str.to_i32?
         status = Status.new(status_code)
@@ -132,7 +132,7 @@ module DICT
       n = nstr.to_i32? || raise "Invalid number of definitions: '#{nstr}'"
       @definitions = Array(DefinitionResponse).new(initial_capacity: n)
       n.times do
-        resp = Response.build_response(io)
+        resp = Response.from_io(io)
         if resp.is_a? DefinitionResponse
           @definitions << resp
         else
