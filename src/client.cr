@@ -39,13 +39,16 @@ module DICT
       end
     end
 
-    def define(word : String, database : String)
-      request = DefineRequest.new(word, database)
+    private def send(request : Request)
       response_channel = Channel(Response).new(capacity: 1)
       @requests.send({request: request, channel: response_channel})
       response = response_channel.receive
       response_channel.close
       response
+    end
+
+    def define(word : String, database : String)
+      send DefineRequest.new(word, database)
     end
 
     def close
