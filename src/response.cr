@@ -45,6 +45,14 @@ module DICT
       end
     end
 
+    # Parses a response and the appropriate continuation responses
+    # from the given _io_.
+    def self.from_io_deep(io : IO)
+      resp = Response.from_io(io)
+      resp.from_io_more(io)
+      resp
+    end
+
     def self.parse_body(io : IO)
       String.build do |b|
         # Single period on its own indicates the end of body.
@@ -102,6 +110,11 @@ module DICT
       self.parse_params(String.Builder.new(string), n)
     end
 
+    # Parses continuation responses expected after this response from _io_.
+    # This default implementation does nothing.
+    def from_io_more(io : IO)
+    end
+
     def to_s(io : IO)
       io << @status.code << " " << @status_message
     end
@@ -123,10 +136,13 @@ module DICT
   end
 
   class DefinitionsResponse < Response
-    getter definitions : Array(DefinitionResponse)
+    getter definitions = Array(DefinitionResponse).new
 
     def initialize(status, io)
       super(status, io)
+    end
+
+    def from_io_more(io)
       if @status == Status::DEFINITIONS_LIST
         @definitions = parse_children(io)
       elsif @status == Status::NO_MATCH

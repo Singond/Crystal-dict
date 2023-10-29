@@ -30,7 +30,7 @@ module DICT
       spawn do
         banner = Response.from_io @io
         while respch = @responses.receive?
-          resp = Response.from_io @io
+          resp = Response.from_io_deep @io
           if resp
             respch.send resp
           end
