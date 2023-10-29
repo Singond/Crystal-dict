@@ -52,6 +52,12 @@ module DICT
     end
 
     def close
+      resp = send QuitRequest.new
+      # TODO: Check response
+      close_self
+    end
+
+    private def close_self
       @io.close
       @requests.close
       @responses.close

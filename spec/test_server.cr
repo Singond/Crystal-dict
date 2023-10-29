@@ -35,6 +35,8 @@ class TestServer
         else
           @out << "552 No match" << @eol << "." << @eol
         end
+      elsif req =~ /quit/
+        @out << "221 closing connection" << @eol
       end
     end
   end
