@@ -32,3 +32,29 @@ describe DICT::Response do
     d.body.should start_with "Lattice"
   end
 end
+
+describe DICT::DefinitionResponse do
+  it "parses a 151 response correctly" do
+    resp = DICT::DefinitionResponse.new(151, IO::Memory.new(<<-END))
+    "Lattice" gcide "The Collaborative International Dictionary of English v.0.48"
+    Lattice \\Lat"tice\\, n. [OE. latis, F. lattis lathwork, fr. latte
+      lath. See {Latten}, 1st {Lath}.]
+      1. (Crystallography) The arrangement of atoms or molecules in
+        a crystal, represented as a repeating arrangement of
+        points in space, each point representing the location of
+        an atom or molecule; called also {crystal lattice} and
+        {space lattice}.
+        [PJC]
+    .
+
+    END
+
+    resp.status.should eq DICT::Status::DEFINITION
+    d = resp.as DICT::DefinitionResponse
+    d.word.should eq "Lattice"
+    d.dbname.should eq "gcide"
+    d.dbdesc.should eq \
+        "The Collaborative International Dictionary of English v.0.48"
+    d.body.should start_with "Lattice"
+  end
+end
