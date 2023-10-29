@@ -127,18 +127,32 @@ module DICT
 
     def initialize(status, io)
       super(status, io)
+      if @status == Status::DEFINITIONS_LIST
+        @definitions = parse_children(io)
+      elsif @status == Status::NO_MATCH
+        @definitions = [] of DefinitionResponse
+      else
+        raise ArgumentError.new "Invalid status"
+      end
+    end
+
+    private def parse_children(io)
       parts = @status_message.split(2)
       nstr = parts[0]
       n = nstr.to_i32? || raise "Invalid number of definitions: '#{nstr}'"
-      @definitions = Array(DefinitionResponse).new(initial_capacity: n)
+
+      # Individual definitions
+      definitions = Array(DefinitionResponse).new(initial_capacity: n)
       n.times do
         resp = Response.from_io(io)
         if resp.is_a? DefinitionResponse
-          @definitions << resp
+          definitions << resp
         else
           raise "Expecting status 151, but the response is:\n#{resp}"
         end
       end
+
+      definitions
     end
 
     def to_s(io)
