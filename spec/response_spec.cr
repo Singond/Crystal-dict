@@ -1,10 +1,10 @@
 require "./spec_helper"
 require "./test_server"
 
-describe DICT::DefinitionsResponse do
-  it "parses a 150 response correctly" do
-    resp = DICT::DefinitionsResponse.new(150, IO::Memory.new(<<-END))
-    1 definitions retrieved
+describe DICT::Response do
+  it "parses a 150 response sequence correctly" do
+    resp = DICT::Response.from_io_deep(IO::Memory.new(<<-END))
+    150 1 definitions retrieved
     151 "Lattice" gcide "The Collaborative International Dictionary of English v.0.48"
     Lattice \\Lat"tice\\, n. [OE. latis, F. lattis lathwork, fr. latte
       lath. See {Latten}, 1st {Lath}.]
