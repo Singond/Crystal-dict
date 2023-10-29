@@ -49,6 +49,24 @@ describe DICT::Client do
       d = resp.definitions[0]
       d.body.lines[0].should eq ".period."
     end
+
+    it "can be called repeatedly", tags: "online" do
+      client = DICT::Client.new "www.dict.org"
+      resp1 = client.define("crystal", "!")
+      resp2 = client.define("ruby", "!")
+      client.close
+
+      resp1.should be_a DICT::DefinitionsResponse
+      resp2.should be_a DICT::DefinitionsResponse
+    end
+
+    it "does not fail if there is no match" do
+      client = DICT::Client.new "www.dict.org"
+      resp = client.define("abcdefgh", "!")
+      client.close
+
+      resp.status.should eq DICT::Status::NO_MATCH
+    end
   end
 
   it "works with LF line endings" do
