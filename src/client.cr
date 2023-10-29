@@ -1,5 +1,6 @@
 require "socket"
 
+require "./request"
 require "./response"
 require "./status"
 
@@ -39,7 +40,7 @@ module DICT
     end
 
     def define(word : String, database : String)
-      request = Request.new(word, database)
+      request = DefineRequest.new(word, database)
       response_channel = Channel(Response).new(capacity: 1)
       @requests.send({request: request, channel: response_channel})
       response = response_channel.receive
@@ -51,18 +52,6 @@ module DICT
       @io.close
       @requests.close
       @responses.close
-    end
-  end
-
-  class Request
-    @word : String
-    @database : String
-
-    def initialize(@word, @database)
-    end
-
-    def to_s(io : IO)
-      io << "define #{@database} #{@word}\n\n"
     end
   end
 end

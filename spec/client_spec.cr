@@ -7,7 +7,7 @@ module DICT
   class SlowClient < Client
     def define(word : String, database : String)
       Log.info { "Sending request '#{word}'" }
-      request = Request.new(word, database)
+      request = DefineRequest.new(word, database)
       response_channel = Channel(Response).new
       @requests.send({request: request, channel: response_channel})
       sleep 2 if word == "slow"
