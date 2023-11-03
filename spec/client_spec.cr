@@ -26,6 +26,16 @@ describe DICT::Client do
       client.close
       client.msgid.should match /<ok@localhost>$/
     end
+
+    it "returns the same value if called repeatedly" do
+      server = TestServer.new
+      client = DICT::Client.new(server.io)
+      client.close
+      msgid = client.msgid
+      3.times do
+        client.msgid.should eq msgid
+      end
+    end
   end
 
   describe "#capabilities" do
