@@ -24,24 +24,40 @@ module DICT
 
     def initialize(@io : IO)
       spawn do
-        while req = @requests.receive?
-          @io << req[:request]
-          @responses.send req[:channel]
-        end
+        send_requests
       end
 
       spawn do
-        bnr = Response.from_io(@io).as? BannerResponse
-        if bnr
-          @banner_channel.send bnr
-        else
-          # TODO: Log bad response
-        end
-        while respch = @responses.receive?
-          resp = Response.from_io_deep @io
-          if resp
-            respch.send resp
-          end
+        read_responses
+      end
+    end
+
+    private def send_requests
+      while req = @requests.receive?
+        @io << req[:request]
+        @responses.send req[:channel]
+      end
+    end
+
+    private def read_responses
+      expect_banner @io, @banner_channel
+      expect_responses @io, @responses
+    end
+
+    private def expect_banner(io : IO, target : Channel(Response))
+      bnr = Response.from_io(io)
+      if bnr.is_a? BannerResponse
+        target.send bnr
+      else
+        raise ResponseError.new bnr, "Connection not successful"
+      end
+    end
+
+    private def expect_responses(io : IO, targets : Channel(Channel(Response)))
+      while respch = targets.receive?
+        resp = Response.from_io_deep io
+        if resp
+          respch.send resp
         end
       end
     end
