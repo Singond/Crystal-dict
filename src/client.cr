@@ -15,6 +15,8 @@ module DICT
     @requests = Channel(RequestResponse).new
     # A queue of channels to write responses into
     @responses = Channel(Channel(Response)).new
+    @banner : BannerResponse?
+    @banner_channel = Channel(BannerResponse).new(capacity: 1)
 
     def initialize(host : String, port = 2628)
       initialize(TCPSocket.new(host, port))
@@ -29,7 +31,12 @@ module DICT
       end
 
       spawn do
-        banner = Response.from_io @io
+        bnr = Response.from_io(@io).as? BannerResponse
+        if bnr
+          @banner_channel.send bnr
+        else
+          # TODO: Log bad response
+        end
         while respch = @responses.receive?
           resp = Response.from_io_deep @io
           if resp
@@ -37,6 +44,23 @@ module DICT
           end
         end
       end
+    end
+
+    def banner
+      if bnr = @banner
+        return bnr
+      else
+        bnr = @banner_channel.receive
+        @banner = bnr
+      end
+    end
+
+    def msgid
+      banner.msgid
+    end
+
+    def capabilities
+      banner.capabilities
     end
 
     private def send(request : Request)

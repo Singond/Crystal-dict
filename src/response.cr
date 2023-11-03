@@ -36,6 +36,8 @@ module DICT
       end
 
       case status
+      when Status::BANNER
+        BannerResponse.new(status, io)
       when Status::DEFINITIONS_LIST
         DefinitionsResponse.new(status, io)
       when Status::DEFINITION
@@ -132,6 +134,32 @@ module DICT
     def to_s(io : IO)
       super(io)
       io << "\n" << @body
+    end
+  end
+
+  class BannerResponse < Response
+    getter capabilities : Array(String)
+    getter msgid : String
+
+    def initialize(status, io)
+      unless status == Status::BANNER
+        raise ArgumentError.new "Invalid status"
+      end
+      super(status, io)
+      @msgid, @capabilities = parse_params @status_message
+    end
+
+    private def parse_params(status_message)
+      words = status_message.split
+      msgid = words[-1]? || ""
+      c = words[-2]?
+      if c && c.starts_with?('<') && c.ends_with?('>')
+        c = c[1...-1]
+        capabilities = c.split('.')
+      else
+        capabilities = [] of String
+      end
+      {msgid, capabilities}
     end
   end
 

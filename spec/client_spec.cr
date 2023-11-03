@@ -19,6 +19,24 @@ module DICT
 end
 
 describe DICT::Client do
+  describe "#msgid" do
+    it "returns the msg-id from banner" do
+      server = TestServer.new
+      client = DICT::Client.new(server.io)
+      client.close
+      client.msgid.should match /<ok@localhost>$/
+    end
+  end
+
+  describe "#capabilities" do
+    it "returns the capabilities from banner, if any" do
+      server = TestServer.new
+      client = DICT::Client.new(server.io)
+      client.close
+      client.capabilities.should eq ["auth", "mime"]
+    end
+  end
+
   describe "#define" do
     it "retrieves the definition of word" do
       server = TestServer.new
