@@ -143,7 +143,7 @@ module DICT
 
     def initialize(status, io)
       unless status == Status::BANNER
-        raise ArgumentError.new "Invalid status"
+        raise ArgumentError.new "Invalid status: #{status}"
       end
       super(status, io)
       @msgid, @capabilities = parse_params @status_message
@@ -180,7 +180,7 @@ module DICT
       elsif @status == Status::NO_MATCH
         @definitions = [] of DefinitionResponse
       else
-        raise ArgumentError.new "Invalid status"
+        raise ArgumentError.new "Invalid status: #{status}"
       end
     end
 
@@ -196,15 +196,15 @@ module DICT
         if resp.is_a? DefinitionResponse
           definitions << resp
         else
-          raise "Expecting status 151, but the response is:\n#{resp}"
+          raise ResponseError.new resp, "Cannot parse definition"
         end
       end
 
       # Completion marker
       final = Response.from_io(io)
       unless final.status == Status::OK
-        raise "Definition command not completed successfully. \
-          Expected status 250, but the response is:\n#{final}"
+        raise ResponseError.new final,
+          "Definition command not completed successfully"
       end
 
       definitions
@@ -227,6 +227,15 @@ module DICT
       super(status, io)
       msgio = IO::Memory.new(@status_message)
       @word, @dbname, @dbdesc = Response.parse_params(msgio, 3)
+    end
+  end
+
+  class ResponseError < Exception
+    getter response : Response
+
+    def initialize(@response, message : String? = nil)
+      super("#{message}#{message ? ": " : ""}Unexpected response: \
+        #{response.status.code} #{response.status_message}")
     end
   end
 end
