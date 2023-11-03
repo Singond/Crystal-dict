@@ -103,4 +103,17 @@ describe DICT::DefinitionResponse do
         "The Collaborative International Dictionary of English v.0.48"
     d.body.should start_with "Lattice"
   end
+
+  it "prints correct status message" do
+    server = TestServer.new("\n")
+    client = DICT::Client.new(server.io)
+    resp = client.define("lattice", "!")
+    client.close
+
+    resp.should be_a DICT::DefinitionsResponse
+    resp = resp.as DICT::DefinitionsResponse
+    d = resp.definitions[0]
+    d.to_s.lines[0].should eq %(151 "Lattice" gcide \
+      "The Collaborative International Dictionary of English v.0.48")
+  end
 end
