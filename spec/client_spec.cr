@@ -45,6 +45,15 @@ describe DICT::Client do
       client.close
       client.capabilities.should eq ["auth", "mime"]
     end
+
+    it "returns an immutable array" do
+      server = TestServer.new
+      client = DICT::Client.new(server.io)
+      client.close
+      caps = client.capabilities
+      caps[1] = "gzip"
+      client.capabilities.should eq ["auth", "mime"]
+    end
   end
 
   describe "#define" do

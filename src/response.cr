@@ -138,7 +138,7 @@ module DICT
   end
 
   class BannerResponse < Response
-    getter capabilities : Array(String)
+    @capabilities : Array(String)
     getter msgid : String
 
     def initialize(status, io)
@@ -160,6 +160,10 @@ module DICT
         capabilities = [] of String
       end
       {msgid, capabilities}
+    end
+
+    def capabilities
+      @capabilities.clone
     end
   end
 
