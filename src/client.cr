@@ -1,3 +1,4 @@
+require "log"
 require "socket"
 
 require "./request"
@@ -34,6 +35,7 @@ module DICT
 
     private def send_requests
       while req = @requests.receive?
+        Log.debug { "Sending request '#{req[:request]}'" }
         req[:request].to_io @io
         @responses.send req[:channel]
       end

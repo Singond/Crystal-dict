@@ -1,3 +1,5 @@
+require "log"
+
 module DICT
 
   # A general representation of a response in the DICT protocol.
@@ -28,23 +30,27 @@ module DICT
 
     # Parses a response from the given _io_.
     def self.from_io(io : IO)
+      Log.debug { "Parsing response..." }
       status_code_str = io.gets(3) || raise "Response is empty"
       if status_code = status_code_str.to_i32?
         status = Status.new(status_code)
+        Log.debug { "Read status #{status}" }
       else
         raise "Bad response: No status code found in line:\n'#{status_code_str}'"
       end
 
       case status
       when Status::BANNER
-        BannerResponse.new(status, io)
+        resp = BannerResponse.new(status, io)
       when Status::DEFINITIONS_LIST
-        DefinitionsResponse.new(status, io)
+        resp = DefinitionsResponse.new(status, io)
       when Status::DEFINITION
-        DefinitionResponse.new(status, io)
+        resp = DefinitionResponse.new(status, io)
       else
-        Response.new(status, io)
+        resp = Response.new(status, io)
       end
+      Log.debug { "Successfully parsed response #{resp.status.code}" }
+      resp
     end
 
     # Parses a response and the appropriate continuation responses
@@ -56,7 +62,8 @@ module DICT
     end
 
     def self.parse_body(io : IO)
-      String.build do |b|
+      Log.debug { "Parsing response body" }
+      body = String.build do |b|
         # Single period on its own indicates the end of body.
         until (line = io.gets) == "."
           # Initial double period must be collapsed into single.
@@ -68,6 +75,8 @@ module DICT
           b << line << "\n"
         end
       end
+      Log.debug { "Parsed #{body.lines.size} body lines" }
+      body
     end
 
     def self.parse_params(io : IO, n : Number)
@@ -190,6 +199,7 @@ module DICT
       n = nstr.to_i32? || raise "Invalid number of definitions: '#{nstr}'"
 
       # Individual definitions
+      Log.debug { "Parsing #{n} definitions" }
       definitions = Array(DefinitionResponse).new(initial_capacity: n)
       n.times do
         resp = Response.from_io(io)
@@ -201,6 +211,7 @@ module DICT
       end
 
       # Completion marker
+      Log.debug { "Parsing definitions completion response" }
       final = Response.from_io(io)
       unless final.status == Status::OK
         raise ResponseError.new final,
