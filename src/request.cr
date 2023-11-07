@@ -11,12 +11,20 @@ module DICT
     end
 
     def to_s(io : IO)
+      io << "define #{@database} #{@word}"
+    end
+
+    def to_io(io : IO)
       io << "define #{@database} #{@word}\r\n"
     end
   end
 
   class QuitRequest < Request
     def to_s(io : IO)
+      io << "quit"
+    end
+
+    def to_io(io : IO)
       io << "quit\r\n"
     end
   end

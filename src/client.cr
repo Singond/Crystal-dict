@@ -34,7 +34,7 @@ module DICT
 
     private def send_requests
       while req = @requests.receive?
-        @io << req[:request]
+        req[:request].to_io @io
         @responses.send req[:channel]
       end
     end
