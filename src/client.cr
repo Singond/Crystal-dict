@@ -23,13 +23,16 @@ module DICT
       initialize(TCPSocket.new(host, port))
     end
 
-    def initialize(@io : IO)
+    # Creates a new `Client` on top of _io_.
+    # If _banner_ is set to false, the input stream is expected to begin
+    # with a regular response, not with an initial banner (response 220).
+    def initialize(@io : IO, banner = true)
       spawn do
         send_requests
       end
 
       spawn do
-        read_responses
+        read_responses banner: banner
       end
     end
 
@@ -41,8 +44,8 @@ module DICT
       end
     end
 
-    private def read_responses
-      expect_banner @io, @banner_channel
+    private def read_responses(*, banner = true)
+      expect_banner @io, @banner_channel if banner
       expect_responses @io, @responses
     end
 
