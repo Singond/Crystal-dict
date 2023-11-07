@@ -98,3 +98,18 @@ class TestServer
   .
   END
 end
+
+class MockServer
+  def initialize(src : IO)
+    @outr = src
+    @inw = IO::Memory.new
+  end
+
+  def initialize (src : String)
+    initialize IO::Memory.new(src)
+  end
+
+  def io
+    IO::Stapled.new(@outr, @inw)
+  end
+end
