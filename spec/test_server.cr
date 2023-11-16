@@ -100,16 +100,20 @@ class TestServer
 end
 
 class MockServer
-  def initialize(src : IO)
-    @outr = src
-    @inw = IO::Memory.new
+  def initialize
+    @reader, @writer = IO.pipe
   end
 
-  def initialize (src : String)
-    initialize IO::Memory.new(src)
+  def initialize(src : String)
+    @reader, @writer = IO.pipe
+    @writer << src
   end
 
   def io
-    IO::Stapled.new(@outr, @inw)
+    IO::Stapled.new(@reader, @writer)
+  end
+
+  def <<(string : String)
+    @writer << string
   end
 end
