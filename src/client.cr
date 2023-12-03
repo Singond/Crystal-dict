@@ -15,7 +15,7 @@ module DICT
     # A queue of channels to write responses into
     @responses = Channel(ResponsePromise).new
     @banner : BannerResponse?
-    @banner_channel = Channel(BannerResponse).new(capacity: 1)
+    @banner_channel = Channel(BannerResponse | Exception).new(capacity: 1)
 
     def initialize(host : String, port = 2628)
       initialize(TCPSocket.new(host, port))
@@ -47,20 +47,26 @@ module DICT
       expect_responses @io, @responses
     end
 
-    private def expect_banner(io : IO, target : Channel(Response))
+    private def expect_banner(io : IO, target : ResponsePromise)
       bnr = Response.from_io(io)
       if bnr.is_a? BannerResponse
         target.send bnr
       else
-        raise ResponseError.new bnr, "Connection not successful"
+        target.send ResponseError.new(bnr, "Connection not successful")
       end
     end
 
     private def expect_responses(io : IO, targets : Channel(ResponsePromise))
       while respch = targets.receive?
-        resp = Response.from_io_deep io
-        if resp
-          respch.send resp
+        begin
+          resp = Response.from_io_deep io
+          if resp
+            respch.send resp
+          end
+        rescue e
+          # Propagate exceptions to the main fiber
+          # so that user code can handle them.
+          respch.send e
         end
       end
     end
@@ -70,6 +76,8 @@ module DICT
         return bnr
       else
         bnr = @banner_channel.receive
+        # Re-raise any exception in this fiber
+        raise bnr if bnr.is_a? Exception
         @banner = bnr
       end
     end
@@ -82,16 +90,26 @@ module DICT
       banner.capabilities
     end
 
-    private def send(request : Request)
+    private def send(request : Request) : Response
       rr = RequestResponse.new(request)
       @requests.send(rr)
       response = rr.response
       rr.close
+      # Re-raise any exception in this fiber
+      raise response if response.is_a? Exception
       response
     end
 
-    def define(word : String, database : String)
+    def define?(word : String, database : String)
       send DefineRequest.new(word, database)
+    end
+
+    def define(word : String, database : String)
+      response = define?(word, database)
+      if !response.is_a? DefinitionResponse
+        raise ResponseError.new(response, "Error parsing definition")
+      end
+      response
     end
 
     def close
@@ -107,7 +125,7 @@ module DICT
     end
   end
 
-  alias ResponsePromise = Channel(Response)
+  alias ResponsePromise = Channel(Response | Exception)
 
   # A wrapper for a request and the associated response.
   class RequestResponse

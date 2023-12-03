@@ -5,13 +5,14 @@ module DICT
   # Modified Client which enables simulating delay between
   # writing a request and reading a response.
   class SlowClient < Client
-    def define(word : String, database : String)
+    def define(word : String, database : String) : Response
       Log.info { "Sending request '#{word}'" }
       request = DefineRequest.new(word, database)
       reqresp = RequestResponse.new(request)
       @requests.send(reqresp)
       sleep 2 if word == "slow"
       resp = reqresp.response
+      raise resp if resp.is_a? Exception
       Log.info { "Got response #{resp.to_s.lines()[1]}" }
       resp
     end
@@ -19,6 +20,18 @@ module DICT
 end
 
 describe DICT::Client do
+  describe "#banner" do
+    it "raises an exception if the server refuses the connection" do
+      server = MockServer.new <<-END
+      420 Server temporarily unavailable\r\n
+      END
+      expect_raises DICT::ResponseError do
+        client = DICT::Client.new(server.io)
+        client.banner
+      end
+    end
+  end
+
   describe "#msgid" do
     it "returns the msg-id from banner" do
       server = TestServer.new
@@ -104,6 +117,17 @@ describe DICT::Client do
       client.close
 
       resp.status.should eq DICT::Status::NO_MATCH
+    end
+
+    it "raises an exception if the server refuses the connection" do
+      server = MockServer.new <<-END
+      420 Server temporarily unavailable\r\n
+      END
+      expect_raises DICT::ResponseError do
+        client = DICT::Client.new(server.io, banner: false)
+        resp = client.define("lattice", "!")
+        Log.debug { "Response: #{resp}" }
+      end
     end
   end
 
